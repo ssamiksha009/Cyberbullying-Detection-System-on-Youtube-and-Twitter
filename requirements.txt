@@ -1,0 +1,25 @@
+# Machine Learning and Deep Learning
+torch==2.1.0
+transformers==4.35.0
+numpy==1.24.3
+
+# Web Framework
+flask==2.3.2
+
+# API Clients
+google-api-python-client==2.86.0
+tweepy==4.14.0
+
+# Data Processing
+nbformat==5.9.2
+nbconvert==7.6.0
+
+# Optional but recommended
+python-dotenv==1.0.0
+
+# Logging and Utilities
+logging==0.5.1.2
+
+# Development and Testing
+pytest==7.3.1
+requests==2.31.0
