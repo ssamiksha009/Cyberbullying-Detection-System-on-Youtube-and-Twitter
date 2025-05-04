@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Cyberbullying Detection System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #4285f4;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .input-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .submit-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background-color: #3367d6;
+        }
+        
+        .charts-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .chart-wrapper {
+            width: 48%;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .comment-list {
+            margin-top: 30px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .comment-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        
+        .comment-text {
+            margin-bottom: 10px;
+        }
+        
+        .comment-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .cyberbullying-class {
+            font-weight: bold;
+            color: #d9534f;
+        }
+        
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .error-message {
+            color: #d9534f;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Advanced Cyberbullying Detection System</h1>
+    </header>
+
+    <div class="container">
+        <div class="input-section">
+            <div class="input-group">
+                <label for="content-url">Enter YouTube Video or Twitter Post URL:</label>
+                <input type="text" id="content-url" placeholder="Enter URL or ID">
+            </div>
+            <button class="submit-btn" id="analyze-btn">Analyze Comments</button>
+        </div>
+
+        <div class="loading" id="loading-indicator">
+            Analyzing comments... Please wait
+        </div>
+
+        <div class="error-message" id="error-message"></div>
+
+        <div class="charts-container" id="charts-container" style="display: none;">
+            <div class="chart-wrapper">
+                <canvas id="cyberbullying-classes-chart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="safe-vs-bullying-chart"></canvas>
+            </div>
+        </div>
+
+        <div class="comment-list" id="comment-list" style="display: none;">
+            <h2>Detailed Comment Analysis</h2>
+            <!-- Comments will be dynamically added here -->
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const contentUrlInput = document.getElementById('content-url');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessage = document.getElementById('error-message');
+        const chartsContainer = document.getElementById('charts-container');
+        const commentList = document.getElementById('comment-list');
+
+        // Chart elements
+        let cyberbullyingClassesChart = null;
+        let safeVsBullyingChart = null;
+
+        analyzeBtn.addEventListener('click', async () => {
+            // Reset previous results
+            errorMessage.textContent = '';
+            chartsContainer.style.display = 'none';
+            commentList.style.display = 'none';
+            loadingIndicator.style.display = 'block';
+
+            const contentUrl = contentUrlInput.value.trim();
+
+            // Determine platform and extract content ID
+            let platform = '';
+            let contentId = '';
+
+            // YouTube URL or ID detection
+            const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const youtubeIdRegex = /^[A-Za-z0-9_-]{11}$/;
+            if (youtubeRegex.test(contentUrl) || youtubeIdRegex.test(contentUrl)) {
+                platform = 'youtube';
+                const match = contentUrl.match(youtubeRegex);
+                contentId = match ? match[1] : contentUrl;
+            }
+
+            // Twitter URL or ID detection
+            // X URL or ID detection
+            const xRegex = /x\.com\/\w+\/status\/(\d+)/;
+            const xIdRegex = /^\d+$/;
+            if (xRegex.test(contentUrl) || xIdRegex.test(contentUrl)) {
+                platform = 'twitter';
+                const match = contentUrl.match(xRegex) || contentUrl.match(/^\d+$/);
+                contentId = match ? match[1] || contentUrl : contentUrl;
+            }
+
+            if (!platform || !contentId) {
+                errorMessage.textContent = 'Invalid YouTube or Twitter URL/ID';
+                loadingIndicator.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/analyze-comments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        platform: platform,
+                        contentId: contentId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                displayResults(data.comments);
+            } catch (error) {
+                console.error('Error:', error);
+                errorMessage.textContent = `Error: ${error.message}`;
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        });
+
+        function displayResults(comments) {
+            // Categorize comments
+            const cyberbullyingClasses = {
+                'Sexual Harassment': 0,
+                'Cyberstalking': 0,
+                'Doxing': 0,
+                'Privacy Violations': 0,
+                'Slut Shaming': 0
+            };
+            let safeComments = 0;
+            let bullyingComments = 0;
+
+            // Clear previous comment list
+            commentList.innerHTML = '<h2>Detailed Comment Analysis</h2>';
+
+            // Populate comment list and categorize
+            comments.forEach(comment => {
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment-item';
+
+                // Determine cyberbullying class
+                let bullyingClass = 'Unknown';
+                if (comment.isBullying) {
+                    bullyingComments++;
+                    // You'd typically have more sophisticated class detection here
+                    // This is a placeholder - you'd integrate your actual class detection logic
+                    const classes = Object.keys(cyberbullyingClasses);
+                    bullyingClass = classes[Math.floor(Math.random() * classes.length)];
+                    cyberbullyingClasses[bullyingClass]++;
+                } else {
+                    safeComments++;
+                }
+
+
+                commentElement.innerHTML = `
+                    <div class="comment-text">${comment.text}</div>
+                    <div class="comment-meta">
+                        <span>By: ${comment.author}</span>
+                        ${comment.isBullying ? 
+                            `<span class="cyberbullying-class">
+                                Cyberbullying: ${comment.bullyingClass}
+                                ${comment.detectedClasses && comment.detectedClasses.length > 0 ? 
+                                    `(Detected: ${comment.detectedClasses.join(', ')})` : 
+                                    ''}
+                        </span>` : 
+                        '<span style="color: green;">Safe Comment</span>'}
+                    </div>
+                `;
+
+                commentList.appendChild(commentElement);
+            });
+
+            // Show charts
+            chartsContainer.style.display = 'flex';
+            commentList.style.display = 'block';
+
+            // Destroy existing charts if they exist
+            if (cyberbullyingClassesChart) cyberbullyingClassesChart.destroy();
+            if (safeVsBullyingChart) safeVsBullyingChart.destroy();
+
+            // Cyberbullying Classes Bar Chart
+            const classesCtx = document.getElementById('cyberbullying-classes-chart').getContext('2d');
+            cyberbullyingClassesChart = new Chart(classesCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(cyberbullyingClasses),
+                    datasets: [{
+                        label: 'Cyberbullying Classes',
+                        data: Object.values(cyberbullyingClasses),
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Cyberbullying Classes Distribution'
+                        }
+                    }
+                }
+            });
+
+            // Safe vs Bullying Pie Chart
+            const pieCtx = document.getElementById('safe-vs-bullying-chart').getContext('2d');
+            safeVsBullyingChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Safe Comments', 'Bullying Comments'],
+                    datasets: [{
+                        data: [safeComments, bullyingComments],
+                        backgroundColor: ['#28a745', '#dc3545']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Comments Breakdown'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
