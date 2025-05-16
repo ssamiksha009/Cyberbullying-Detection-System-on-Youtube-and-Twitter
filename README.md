@@ -84,7 +84,4 @@ The model was trained on a custom dataset with 5 cyberbullying classes using the
 5. Create a Pull Request
 
 ## License
-[Specify your license here]
-
-## Contact
-[Your contact information]
+MIT Licence 
