@@ -69,19 +69,12 @@ Open a web browser and navigate to `http://localhost:5000`
 - `models/`: Directory for storing trained model and tokenizer
 
 ## Model Training
-The model was trained on a custom dataset with 5 cyberbullying classes using the BERTweet base model. Achieved 86% accuracy in classification.
+The model was trained on a IEEE dataport dataset (https://ieee-dataport.org/documents/cyber-bullying-types-datasets) with 5 cyberbullying classes using the BERTweet base model. Achieved 86% accuracy in classification.
 
 ## Limitations
 - API rate limits for YouTube and Twitter
 - Model accuracy depends on training data
 - Requires continuous model retraining and improvement
-
-## Contributing
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
 
 ## License
 MIT Licence 
